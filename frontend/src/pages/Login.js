@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
@@ -14,7 +14,23 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [language, setLanguage] = useState('en');
+  const [showLangDropdown, setShowLangDropdown] = useState(false);
+  const [translations, setTranslations] = useState({});
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/texts?page=login&lang=${language}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.content) {
+          setTranslations(data.content);
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching translations:', err);
+      });
+  }, [language]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,12 +72,48 @@ export default function Login() {
           <img src={logo} alt="Logo" className="logo" />
         </div>
         <div className="right">
-          <button className="flag">
-            <img src={flag_se} alt="SE" />
-          </button>
-          <button className="flag">
-            <img src={flag_gb} alt="EN" />
-          </button>
+          <div className="language-selector">
+            <button 
+              className="flag" 
+              onClick={() => setShowLangDropdown(!showLangDropdown)}
+            >
+              {language === 'sv' ? (
+                <>
+                  <img src={flag_se} alt="SE" />
+                  <span>Svenska</span>
+                </>
+              ) : (
+                <>
+                  <img src={flag_gb} alt="EN" />
+                  <span>English</span>
+                </>
+              )}
+            </button>
+            {showLangDropdown && (
+              <div className="language-dropdown">
+                <button 
+                  className={language === 'en' ? 'active' : ''}
+                  onClick={() => {
+                    setLanguage('en');
+                    setShowLangDropdown(false);
+                  }}
+                >
+                  <img src={flag_gb} alt="EN" />
+                  <span>English</span>
+                </button>
+                <button 
+                  className={language === 'sv' ? 'active' : ''}
+                  onClick={() => {
+                    setLanguage('sv');
+                    setShowLangDropdown(false);
+                  }}
+                >
+                  <img src={flag_se} alt="SE" />
+                  <span>Svenska</span>
+                </button>
+              </div>
+            )}
+          </div>
           <div className="hamburger">
             <button className="hamburger-button" aria-label="Menu">
               <span />
@@ -72,32 +124,32 @@ export default function Login() {
         </div>
       </div>
       <div className="login-card">
-        <h1>Welcome back</h1>
-        <p className="subtitle">Sign in to continue</p>
+        <h1>{translations.title || 'Welcome back'}</h1>
+        <p className="subtitle">{translations.subtitle || 'Sign in to continue'}</p>
         <form className="form" onSubmit={handleSubmit}>
           {error && <div className="error">{error}</div>}
           <label>
-            Email
+            {translations.email_label || 'Email'}
             <input 
               type="email" 
-              placeholder="enter email" 
+              placeholder={translations.email_placeholder || 'enter email'} 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required 
             />
           </label>
           <label>
-            Password
+            {translations.password_label || 'Password'}
             <input 
               type="password" 
-              placeholder="••••••••" 
+              placeholder={translations.password_placeholder || '••••••••'} 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required 
             />
           </label>
           <button type="submit" className="primary" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? (translations.logging_in || 'Logging in...') : (translations.button_label || 'Login')}
           </button>
         </form>
       </div>

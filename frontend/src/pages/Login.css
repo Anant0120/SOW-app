@@ -22,20 +22,70 @@
     align-items: center; 
     gap: 8px; }
 
+.language-selector {
+    position: relative;
+}
+
 .flag { 
     background: transparent; 
     border: none; 
-    padding: 4px; 
+    padding: 4px 8px;
     cursor: pointer; 
-    opacity: 0.7; }
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #fff;
+    font-size: 14px;
+}
 
 .flag.active { opacity: 1; }
 
-.flag img { width: 24px; 
+.flag img { 
+    width: 24px; 
     height: 16px; 
     object-fit: cover; 
     display: block; 
-    border-radius: 2px; }
+    border-radius: 2px; 
+}
+
+.language-dropdown {
+    position: absolute;
+    right: 0;
+    top: 40px;
+    background: rgba(0,0,0,0.85);
+    border-radius: 6px;
+    min-width: 140px;
+    padding: 8px 0;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    z-index: 10;
+}
+
+.language-dropdown button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.language-dropdown button:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.language-dropdown button.active {
+    background: rgba(255,255,255,0.15);
+}
+
+.language-dropdown button img {
+    width: 20px;
+    height: 14px;
+}
 
 .login-card { 
     margin: 40px auto; 
