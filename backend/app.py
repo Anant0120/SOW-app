@@ -91,7 +91,23 @@ def create_app():
         finally:
             db.close()
 
-    
+    @app.get("/api/terms")
+    def get_terms():
+        lang = request.args.get("lang", "en").strip().lower()
+        db = SessionLocal()
+        try:
+            result = db.execute(
+                select(Translation).where(
+                    Translation.page == "terms",
+                    Translation.lang == lang,
+                    Translation.key == "terms_content"
+                )
+            ).scalar_one_or_none()
+            if result:
+                return jsonify({"text": result.value})
+            return jsonify({"text": ""})
+        finally:
+            db.close()
 
     return app
 
