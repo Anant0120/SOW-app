@@ -32,6 +32,18 @@ class Translation(Base):
     page = Column(String(50), nullable=False)
 
 
+class Product(Base):
+    __tablename__ = "products"
+    id = Column(Integer, primary_key=True)
+    article_no = Column(String(255))
+    product_service = Column(String(255), nullable=False)
+    in_price = Column(Integer)
+    price = Column(Integer)
+    unit = Column(String(50))
+    in_stock = Column(Integer)
+    description = Column(Text)
+
+
 def create_app():
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "secret")
@@ -42,6 +54,7 @@ def create_app():
 
     JWTManager(app)
 
+    
     
 
     
@@ -106,6 +119,82 @@ def create_app():
             if result:
                 return jsonify({"text": result.value})
             return jsonify({"text": ""})
+        finally:
+            db.close()
+
+    @app.get("/api/products")
+    @jwt_required()
+    def list_products():
+        page = max(int(request.args.get("page", 1)), 1)
+        page_size = min(max(int(request.args.get("page_size", 20)), 1), 100)
+        q_name = (request.args.get("product") or "").strip()
+        q_article = (request.args.get("article") or "").strip()
+        db = SessionLocal()
+        try:
+            stmt = select(Product)
+            count_stmt = select(func.count(Product.id))
+            
+            if q_name:
+                like = f"%{q_name}%"
+                stmt = stmt.where(Product.product_service.ilike(like))
+                count_stmt = count_stmt.where(Product.product_service.ilike(like))
+            if q_article:
+                like_a = f"%{q_article}%"
+                stmt = stmt.where(Product.article_no.ilike(like_a))
+                count_stmt = count_stmt.where(Product.article_no.ilike(like_a))
+
+            total = db.execute(count_stmt).scalar() or 0
+            items = db.execute(
+                stmt.order_by(Product.id.asc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+            ).scalars().all()
+
+            
+
+            def serialize(p: Product):
+                return {
+                    "id": p.id,
+                    "article_no": p.article_no or "",
+                    "product_service": p.product_service or "",
+                    "in_price": str(p.in_price) if p.in_price is not None else None,
+                    "price": str(p.price) if p.price is not None else None,
+                    "unit": p.unit or "",
+                    "in_stock": str(p.in_stock) if p.in_stock is not None else None,
+                    "description": p.description or ""
+                }
+
+            return jsonify({
+                "page": page,
+                "page_size": page_size,
+                "total": total,
+                "items": [serialize(p) for p in items]
+            })
+        finally:
+            db.close()
+
+    @app.patch("/api/products/<int:product_id>")
+    @jwt_required()
+    def update_product(product_id: int):
+        allowed_fields = {"article_no", "product_service", "in_price", "price", "unit", "in_stock", "description"}
+        data = request.get_json(silent=True) or {}
+        updates = {k: v for k, v in data.items() if k in allowed_fields}
+        if not updates:
+            return jsonify({"message": "No valid fields to update"}), 400
+
+        db = SessionLocal()
+        try:
+            product: Product | None = db.get(Product, product_id)
+            if not product:
+                return jsonify({"message": "Product not found"}), 404
+
+            for field, value in updates.items():
+                if isinstance(value, str) and value.strip() == "":
+                    value = None
+                setattr(product, field, value)
+            db.commit()
+
+            return jsonify({"message": "Updated"})
         finally:
             db.close()
 
