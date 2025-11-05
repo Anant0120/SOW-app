@@ -7,6 +7,7 @@ import { API_BASE } from '../config';
 export default function Pricelist() {
   const token = localStorage.getItem('token');
   const [user, setUser] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
@@ -118,37 +119,97 @@ export default function Pricelist() {
   };
 
   return (
-    <div className="pricelist-page">
-      <div className="pl-toolbar">
-        <div className="title">Price List</div>
-        {user && <div className="user">{user.email}</div>}
-        <div className="spacer" />
-        <div className="toolbar-actions">
-          <button className="btn ghost" title="New Product">＋</button>
-          <button className="btn ghost" title="Print">Print</button>
-          <button className="btn ghost" title="Advanced">Advanced</button>
-        </div>
+    <div className={`app-shell ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+      <div className="topbar">
+        <button 
+          className="menu-toggle" 
+          onClick={() => setSidebarOpen(s => !s)}
+          aria-label="Toggle menu"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+        <div className="topbar-spacer" />
+        {user && <div className="topbar-user">{user.email}</div>}
       </div>
 
-      <div className="pl-search">
-        <input className="pill" placeholder="Search Article No ..." value={searchArticle} onChange={onSearchChange(setSearchArticle)} />
-        <input className="pill" placeholder="Search Product ..." value={searchName} onChange={onSearchChange(setSearchName)} />
-      </div>
+      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <nav className="nav">
+          <div className="nav-section">Menu</div>
+          <a 
+            className="nav-item active" 
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setSidebarOpen(false);
+            }}
+          >
+            <span className="nav-dot" />
+            <span>Price List</span>
+          </a>
+        </nav>
+      </aside>
 
-      <div className="pl-table-wrapper">
-        <div className="pl-header row">
-          <div className="cell col-article hide-mobile hide-tablet">Article No.</div>
-          <div className="cell col-name">Product/Service</div>
-          <div className="cell col-inprice hide-tablet hide-mobile">In Price</div>
-          <div className="cell col-price">Price</div>
-          <div className="cell col-unit hide-mobile">Unit</div>
-          <div className="cell col-instock hide-mobile">In Stock</div>
-          <div className="cell col-desc hide-mobile hide-tablet">Description</div>
-        </div>
+      <main className="page-content">
+        <div className="pricelist-page">
+          <div className="pl-search-wrapper">
+            <div className="pl-search">
+              <div className="search-input-wrapper">
+                <input className="pill" placeholder="Search Article No ..." value={searchArticle} onChange={onSearchChange(setSearchArticle)} />
+                <svg className="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="search-input-wrapper">
+                <input className="pill" placeholder="Search Product ..." value={searchName} onChange={onSearchChange(setSearchName)} />
+                <svg className="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div className="toolbar-actions">
+              <button className="btn btn-new-product" title="New Product">
+                <span className="btn-icon">＋</span>
+                <span className="btn-text">New Product</span>
+              </button>
+              <button className="btn btn-print" title="Print">
+                <svg className="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 9V3h12v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6 17h12v4H6z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+                  <path d="M6 13H5a3 3 0 0 1-3-3v0a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v0a3 3 0 0 1-3 3h-1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="btn-text">Print</span>
+              </button>
+              <button className="btn btn-advanced" title="Advanced">
+                <svg className="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <circle cx="4" cy="13" r="2" fill="#f59e0b"/>
+                  <circle cx="12" cy="11" r="2" fill="#10b981"/>
+                  <circle cx="20" cy="15" r="2" fill="#3b82f6"/>
+                </svg>
+                <span className="btn-text">Advanced</span>
+              </button>
+            </div>
+          </div>
 
-      <div className="pl-rows" ref={rowsRef}>
-          {products.map(p => (
-            <div className="row" key={p.id}>
+          <div className="pl-table-wrapper">
+            <div className="pl-header row">
+              <div className="cell col-article hide-mobile hide-tablet">Article No.</div>
+              <div className="cell col-name">Product/Service</div>
+              <div className="cell col-inprice hide-tablet hide-mobile">In Price</div>
+              <div className="cell col-price">Price</div>
+              <div className="cell col-unit hide-mobile">Unit</div>
+              <div className="cell col-instock hide-mobile">In Stock</div>
+              <div className="cell col-desc hide-mobile hide-tablet">Description</div>
+            </div>
+
+            <div className="pl-rows" ref={rowsRef}>
+              {products.map(p => (
+                <div className="row" key={p.id}>
               <div className="cell col-article hide-mobile hide-tablet">
                 <input value={p.article_no || ''} onChange={e => handleChange(p.id, 'article_no', e.target.value)} />
                 <StatusDot id={p.id} field="article_no" />
@@ -177,13 +238,15 @@ export default function Pricelist() {
                 <input value={p.description || ''} onChange={e => handleChange(p.id, 'description', e.target.value)} />
                 <StatusDot id={p.id} field="description" />
               </div>
+                </div>
+              ))}
+              {loading && (
+                <div className="row"><div className="cell">Loading…</div></div>
+              )}
             </div>
-          ))}
-          {loading && (
-            <div className="row"><div className="cell">Loading…</div></div>
-          )}
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
