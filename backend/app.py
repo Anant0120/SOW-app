@@ -2,7 +2,7 @@ import os
 from datetime import timedelta
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
 from sqlalchemy import Column, Integer, String, Text, create_engine, select, func
 from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session
 from dotenv import load_dotenv
@@ -74,7 +74,7 @@ def create_app():
             if not user or user.password != password:
                 return jsonify({"message": "Invalid credentials"}), 401
             
-            token = create_access_token(identity={"id": user.id, "email": user.email})
+            token = create_access_token(identity=str(user.id), additional_claims={"email": user.email})
             return jsonify({
                 "access_token": token,
                 "user": {"id": user.id, "email": user.email}
@@ -86,7 +86,12 @@ def create_app():
     @jwt_required()
     def get_current_user():
         identity = get_jwt_identity()
-        return jsonify({"user": identity})
+        claims = get_jwt()
+        try:
+            user_id = int(identity)
+        except (TypeError, ValueError):
+            user_id = identity
+        return jsonify({"user": {"id": user_id, "email": claims.get("email")}})
 
     @app.get("/api/texts")
     def get_texts():
