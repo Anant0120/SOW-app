@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
+import { API_BASE } from '../config';
 
 const flag_se = 'https://storage.123fakturere.no/public/flags/SE.png';
 const flag_gb = 'https://storage.123fakturere.no/public/flags/GB.png';
 const wallpaper = 'https://storage.123fakturera.se/public/wallpapers/sverige43.jpg';
 const logo = 'https://storage.123fakturera.se/public/icons/diamond.png';
-
-const API_BASE = 'http://localhost:5000';
 
 export default function Login() {
   const [email, setEmail] = useState('');

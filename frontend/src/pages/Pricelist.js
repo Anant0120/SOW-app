@@ -1,7 +1,8 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import './Pricelist.css';
+import { API_BASE } from '../config';
 
-const API_BASE = 'http://localhost:5000';
+ 
 
 export default function Pricelist() {
   const token = localStorage.getItem('token');
