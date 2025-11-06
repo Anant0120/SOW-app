@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Terms.css';
 import { API_BASE } from '../config';
 
@@ -10,10 +11,15 @@ const logo = 'https://storage.123fakturera.se/public/icons/diamond.png';
  
 
 export default function Terms() {
+  const navigate = useNavigate();
   const [language, setLanguage] = useState('en');
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [termsText, setTermsText] = useState('');
   const [translations, setTranslations] = useState({});
+  
+  const handleClose = () => {
+    navigate(-1); 
+  };
 
   useEffect(() => {
     fetch(`${API_BASE}/api/texts?page=terms&lang=${language}`)
@@ -83,13 +89,18 @@ export default function Terms() {
         </div>
       </div>
       <div className="terms-card">
-        <h1>{translations.title || 'Terms and Conditions'}</h1>
+        <h1>{translations.title}</h1>
         <div className="terms-content">
           {termsText ? (
             <div className="terms-text" dangerouslySetInnerHTML={{ __html: termsText }} />
           ) : (
             <p>Loading terms...</p>
           )}
+        </div>
+        <div className="terms-footer">
+          <button className="close-button" onClick={handleClose}>
+            {translations.close_and_go_back}
+          </button>
         </div>
       </div>
     </div>

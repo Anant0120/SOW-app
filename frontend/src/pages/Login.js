@@ -11,10 +11,12 @@ const logo = 'https://storage.123fakturera.se/public/icons/diamond.png';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState('en');
   const [showLangDropdown, setShowLangDropdown] = useState(false);
+  const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
   const [translations, setTranslations] = useState({});
   const navigate = useNavigate();
 
@@ -114,11 +116,34 @@ export default function Login() {
             )}
           </div>
           <div className="hamburger">
-            <button className="hamburger-button" aria-label="Menu">
+            <button 
+              className="hamburger-button" 
+              aria-label="Menu"
+              onClick={() => setShowHamburgerMenu(!showHamburgerMenu)}
+            >
               <span />
               <span />
               <span />
             </button>
+            {showHamburgerMenu && (
+              <div className="hamburger-menu">
+                <a href="#" className="hamburger-item" onClick={(e) => { e.preventDefault(); setShowHamburgerMenu(false); }}>
+                  {translations.menu_home || 'Home'}
+                </a>
+                <a href="#" className="hamburger-item" onClick={(e) => { e.preventDefault(); setShowHamburgerMenu(false); }}>
+                  {translations.menu_order || 'Order'}
+                </a>
+                <a href="#" className="hamburger-item" onClick={(e) => { e.preventDefault(); setShowHamburgerMenu(false); }}>
+                  {translations.menu_our_customers || 'Our Customers'}
+                </a>
+                <a href="#" className="hamburger-item" onClick={(e) => { e.preventDefault(); setShowHamburgerMenu(false); }}>
+                  {translations.menu_about_us || 'About us'}
+                </a>
+                <a href="#" className="hamburger-item" onClick={(e) => { e.preventDefault(); setShowHamburgerMenu(false); }}>
+                  {translations.menu_contact_us || 'Contact Us'}
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -137,15 +162,36 @@ export default function Login() {
               required 
             />
           </label>
-          <label>
+          <label className="password-label">
             {translations.password_label || 'Password'}
-            <input 
-              type="password" 
-              placeholder={translations.password_placeholder || '••••••••'} 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-            />
+            <div className="password-input-wrapper">
+              <input 
+                type={showPassword ? "text" : "password"}
+                placeholder={translations.password_placeholder || '••••••••'} 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required 
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M1 1l22 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
+                  </svg>
+                )}
+              </button>
+            </div>
           </label>
           <button type="submit" className="primary" disabled={loading}>
             {loading ? (translations.logging_in || 'Logging in...') : (translations.button_label || 'Login')}
