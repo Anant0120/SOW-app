@@ -207,7 +207,6 @@
     display: none;
 }
 
-x */
 .password-input-wrapper input[type="password"]::-moz-password-toggle {
     display: none !important;
 }
