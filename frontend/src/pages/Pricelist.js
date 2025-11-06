@@ -2,11 +2,16 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import './Pricelist.css';
 import { API_BASE } from '../config';
 
+const flag_se = 'https://storage.123fakturere.no/public/flags/SE.png';
+const flag_gb = 'https://storage.123fakturere.no/public/flags/GB.png';
+
  
 
 export default function Pricelist() {
   const token = localStorage.getItem('token');
   const [user, setUser] = useState(null);
+  const [language, setLanguage] = useState('en');
+  const [showLangDropdown, setShowLangDropdown] = useState(false);
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [products, setProducts] = useState([]);
@@ -64,18 +69,30 @@ export default function Pricelist() {
         const data = await res.json();
         if (isCancelled) return;
         setTotal(data.total || 0);
-        setProducts(prev => page === 1 ? (data.items || []) : [...prev, ...(data.items || [])]);
+        if (page === 1) {
+          setProducts(data.items || []);
+        } else {
+          setProducts(prev => {
+            
+            const existingIds = new Set(prev.map(p => p.id));
+            const newItems = (data.items || []).filter(item => !existingIds.has(item.id));
+            return [...prev, ...newItems];
+          });
+        }
       } finally {
         if (!isCancelled) setLoading(false);
       }
     };
     load();
     return () => { isCancelled = true; };
-  }, [token, page, pageSize, searchName, searchArticle]);
+  }, [token, page, pageSize, searchName, searchArticle, authHeaders]);
 
-    useEffect(() => {
+  useEffect(() => {
+    if (!token) return;
     setPage(1);
-  }, [token]);
+    setProducts([]);
+    setTotal(0);
+  }, [token, searchName, searchArticle]);
 
   
   const onSearchChange = (setter) => (e) => {
@@ -83,8 +100,7 @@ export default function Pricelist() {
     setter(value);
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     searchDebounceRef.current = setTimeout(() => {
-      setPage(1);
-      setProducts([]);
+      
     }, 350);
   };
 
@@ -95,14 +111,22 @@ export default function Pricelist() {
     const onScroll = () => {
       if (loading) return;
       const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 120;
-      const hasMore = products.length < total;
-      if (nearBottom && hasMore) {
-        setPage(p => p + 1);
+      const hasMore = products.length < total && total > 0;
+      const currentPageCount = Math.ceil(products.length / pageSize);
+      const totalPages = Math.ceil(total / pageSize);
+      const canLoadMore = currentPageCount < totalPages;
+      
+      if (nearBottom && hasMore && canLoadMore) {
+        setPage(p => {
+          const nextPage = p + 1;
+          const maxPage = Math.ceil(total / pageSize);
+          return nextPage <= maxPage ? nextPage : p;
+        });
       }
     };
     el.addEventListener('scroll', onScroll);
     return () => el.removeEventListener('scroll', onScroll);
-  }, [products, total, loading]);
+  }, [products.length, total, loading, pageSize]);
 
   const handleChange = (id, field, value) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
@@ -144,8 +168,49 @@ export default function Pricelist() {
           <span />
           <span />
         </button>
+        <div className="topbar-user-info">
+          <div className="user-avatar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
+            </svg>
+          </div>
+          <div className="user-details">
+            <div className="user-name">{user?.name || 'Anant'}</div>
+            
+          </div>
+        </div>
         <div className="topbar-spacer" />
-        {user && <div className="topbar-user">{user.email}</div>}
+        <div className="topbar-language">
+          <button 
+            className="lang-button" 
+            onClick={() => setShowLangDropdown(!showLangDropdown)}
+          >
+            {language === 'sv' ? (
+              <>
+                <span>Svenska</span>
+                <img src={flag_se} alt="SE" className="lang-flag" />
+              </>
+            ) : (
+              <>
+                <span>English</span>
+                <img src={flag_gb} alt="EN" className="lang-flag" />
+              </>
+            )}
+          </button>
+          {showLangDropdown && (
+            <div className="lang-dropdown">
+              <button onClick={() => { setLanguage('en'); setShowLangDropdown(false); }}>
+                <img src={flag_gb} alt="EN" />
+                <span>English</span>
+              </button>
+              <button onClick={() => { setLanguage('sv'); setShowLangDropdown(false); }}>
+                <img src={flag_se} alt="SE" />
+                <span>Svenska</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
@@ -160,6 +225,7 @@ export default function Pricelist() {
               setSidebarOpen(false);
             }}
           >
+            <svg className="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2"/><path d="M14 2v6h6" stroke="currentColor" strokeWidth="2"/></svg>
             <span className="nav-dot" />
             <span>Price List</span>
           </a>
@@ -171,14 +237,14 @@ export default function Pricelist() {
           <div className="pl-search-wrapper">
             <div className="pl-search">
               <div className="search-input-wrapper">
-                <input className="pill" placeholder="Search Article No ..." value={searchArticle} onChange={onSearchChange(setSearchArticle)} />
+                <input className="pill" placeholder="Search Article No." value={searchArticle} onChange={onSearchChange(setSearchArticle)} />
                 <svg className="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
               <div className="search-input-wrapper">
-                <input className="pill" placeholder="Search Product ..." value={searchName} onChange={onSearchChange(setSearchName)} />
+                <input className="pill" placeholder="Search Product..." value={searchName} onChange={onSearchChange(setSearchName)} />
                 <svg className="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -187,71 +253,94 @@ export default function Pricelist() {
             </div>
             <div className="toolbar-actions">
               <button className="btn btn-new-product" title="New Product">
-                <span className="btn-icon">＋</span>
+                <svg className="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                  <line x1="12" y1="7" x2="12" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
                 <span className="btn-text">New Product</span>
               </button>
-              <button className="btn btn-print" title="Print">
+              <button className="btn btn-print" title="Print List">
                 <svg className="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M6 9V3h12v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M6 17h12v4H6z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
                   <path d="M6 13H5a3 3 0 0 1-3-3v0a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v0a3 3 0 0 1-3 3h-1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                <span className="btn-text">Print</span>
+                <span className="btn-text">Print List</span>
               </button>
-              <button className="btn btn-advanced" title="Advanced">
+              <button className="btn btn-advanced" title="Advanced mode">
                 <svg className="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                   <circle cx="4" cy="13" r="2" fill="#f59e0b"/>
                   <circle cx="12" cy="11" r="2" fill="#10b981"/>
                   <circle cx="20" cy="15" r="2" fill="#3b82f6"/>
                 </svg>
-                <span className="btn-text">Advanced</span>
+                <span className="btn-text">Advanced mode</span>
               </button>
             </div>
           </div>
 
           <div className="pl-table-wrapper">
             <div className="pl-header row">
-              <div className="cell col-article hide-mobile hide-phone-landscape">Article No.</div>
-              <div className="cell col-name">Product/Service</div>
+              <div className="cell col-article hide-mobile hide-phone-landscape sortable">Article No. <span className="sort-arrow">↓</span></div>
+              <div className="cell col-name sortable">Product/Service <span className="sort-arrow">↓</span></div>
               <div className="cell col-inprice hide-tablet hide-mobile hide-phone-landscape">In Price</div>
               <div className="cell col-price">Price</div>
-              <div className="cell col-unit hide-mobile hide-phone-landscape">Unit</div>
               <div className="cell col-instock hide-mobile hide-phone-landscape">In Stock</div>
+              <div className="cell col-unit hide-mobile hide-phone-landscape">Unit</div>
               <div className="cell col-desc hide-mobile hide-tablet hide-phone-landscape">Description</div>
             </div>
 
             <div className="pl-rows" ref={rowsRef}>
               {products.map(p => (
                 <div className="row" key={p.id}>
-              <div className="cell col-article hide-mobile hide-phone-landscape">
-                <input value={p.article_no || ''} onChange={e => handleChange(p.id, 'article_no', e.target.value)} />
-                <StatusDot id={p.id} field="article_no" />
-              </div>
-              <div className="cell col-name">
-                <input value={p.product_service || ''} onChange={e => handleChange(p.id, 'product_service', e.target.value)} />
-                <StatusDot id={p.id} field="product_service" />
-              </div>
-              <div className="cell col-inprice hide-tablet hide-mobile hide-phone-landscape">
-                <input type="text" value={p.in_price ?? ''} onChange={e => handleChange(p.id, 'in_price', e.target.value)} />
-                <StatusDot id={p.id} field="in_price" />
-              </div>
-              <div className="cell col-price">
-                <input type="text" value={p.price ?? ''} onChange={e => handleChange(p.id, 'price', e.target.value)} />
-                <StatusDot id={p.id} field="price" />
-              </div>
-              <div className="cell col-unit hide-mobile hide-phone-landscape">
-                <input value={p.unit || ''} onChange={e => handleChange(p.id, 'unit', e.target.value)} />
-                <StatusDot id={p.id} field="unit" />
-              </div>
-              <div className="cell col-instock hide-mobile hide-phone-landscape">
-                <input type="text" value={p.in_stock ?? ''} onChange={e => handleChange(p.id, 'in_stock', e.target.value)} />
-                <StatusDot id={p.id} field="in_stock" />
-              </div>
-              <div className="cell col-desc hide-mobile hide-tablet hide-phone-landscape">
-                <input value={p.description || ''} onChange={e => handleChange(p.id, 'description', e.target.value)} />
-                <StatusDot id={p.id} field="description" />
-              </div>
+                  <div className="cell col-article hide-mobile hide-phone-landscape">
+                    <span className="cell-pill">
+                      <input value={p.article_no || ''} onChange={e => handleChange(p.id, 'article_no', e.target.value)} />
+                    </span>
+                    <StatusDot id={p.id} field="article_no" />
+                  </div>
+                  <div className="cell col-name">
+                    <span className="cell-pill">
+                      <input value={p.product_service || ''} onChange={e => handleChange(p.id, 'product_service', e.target.value)} />
+                    </span>
+                    <StatusDot id={p.id} field="product_service" />
+                  </div>
+                  <div className="cell col-inprice hide-tablet hide-mobile hide-phone-landscape">
+                    <span className="cell-pill">
+                      <input type="text" value={p.in_price ?? ''} onChange={e => handleChange(p.id, 'in_price', e.target.value)} />
+                    </span>
+                    <StatusDot id={p.id} field="in_price" />
+                  </div>
+                  <div className="cell col-price">
+                    <span className="cell-pill">
+                      <input type="text" value={p.price ?? ''} onChange={e => handleChange(p.id, 'price', e.target.value)} />
+                    </span>
+                    <StatusDot id={p.id} field="price" />
+                  </div>
+                  <div className="cell col-instock hide-mobile hide-phone-landscape">
+                    <span className="cell-pill">
+                      <input type="text" value={p.in_stock ?? ''} onChange={e => handleChange(p.id, 'in_stock', e.target.value)} />
+                    </span>
+                    <StatusDot id={p.id} field="in_stock" />
+                  </div>
+                  <div className="cell col-unit hide-mobile hide-phone-landscape">
+                    <span className="cell-pill">
+                      <input value={p.unit || ''} onChange={e => handleChange(p.id, 'unit', e.target.value)} />
+                    </span>
+                    <StatusDot id={p.id} field="unit" />
+                  </div>
+                  <div className="cell col-desc hide-mobile hide-tablet hide-phone-landscape">
+                    <span className="cell-pill">
+                      <input value={p.description || ''} onChange={e => handleChange(p.id, 'description', e.target.value)} />
+                    </span>
+                    <StatusDot id={p.id} field="description" />
+                  </div>
+                  <div className="cell col-actions">
+                    <span className="cell-pill">
+                      <svg className="row-ellipsis" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/><circle cx="5" cy="12" r="1" fill="currentColor"/></svg>
+                    </span>
+                  </div>
                 </div>
               ))}
               {loading && (
