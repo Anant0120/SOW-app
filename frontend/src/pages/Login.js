@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import { API_BASE } from '../config';
+import TopBar from '../components/TopBar';
 
 const flag_se = 'https://storage.123fakturere.no/public/flags/SE.png';
 const flag_gb = 'https://storage.123fakturere.no/public/flags/GB.png';
@@ -18,6 +19,7 @@ export default function Login() {
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
   const [translations, setTranslations] = useState({});
+  const [footerRevealed, setFooterRevealed] = useState(true); // always visible
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,6 +34,8 @@ export default function Login() {
         console.error('Error fetching translations:', err);
       });
   }, [language]);
+
+  useEffect(() => { setFooterRevealed(true); }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -68,88 +72,16 @@ export default function Login() {
 
   return (
     <div className="login-page" style={{ backgroundImage: `url(${wallpaper})` }}>
-      <div className="login-topbar">
-        <div className="left">
-          <img src={logo} alt="Logo" className="logo" />
-        </div>
-        <div className="right">
-          <div className="language-selector">
-            <button 
-              className="flag" 
-              onClick={() => setShowLangDropdown(!showLangDropdown)}
-            >
-              {language === 'sv' ? (
-                <>
-                  <img src={flag_se} alt="SE" />
-                  <span>Svenska</span>
-                </>
-              ) : (
-                <>
-                  <img src={flag_gb} alt="EN" />
-                  <span>English</span>
-                </>
-              )}
-            </button>
-            {showLangDropdown && (
-              <div className="language-dropdown">
-                <button 
-                  className={language === 'en' ? 'active' : ''}
-                  onClick={() => {
-                    setLanguage('en');
-                    setShowLangDropdown(false);
-                  }}
-                >
-                  <img src={flag_gb} alt="EN" />
-                  <span>English</span>
-                </button>
-                <button 
-                  className={language === 'sv' ? 'active' : ''}
-                  onClick={() => {
-                    setLanguage('sv');
-                    setShowLangDropdown(false);
-                  }}
-                >
-                  <img src={flag_se} alt="SE" />
-                  <span>Svenska</span>
-                </button>
-              </div>
-            )}
-          </div>
-          <div className="hamburger">
-            <button 
-              className="hamburger-button" 
-              aria-label="Menu"
-              onClick={() => setShowHamburgerMenu(!showHamburgerMenu)}
-            >
-              <span />
-              <span />
-              <span />
-            </button>
-            {showHamburgerMenu && (
-              <div className="hamburger-menu">
-                <a href="#" className="hamburger-item" onClick={(e) => { e.preventDefault(); setShowHamburgerMenu(false); }}>
-                  {translations.menu_home || 'Home'}
-                </a>
-                <a href="#" className="hamburger-item" onClick={(e) => { e.preventDefault(); setShowHamburgerMenu(false); }}>
-                  {translations.menu_order || 'Order'}
-                </a>
-                <a href="#" className="hamburger-item" onClick={(e) => { e.preventDefault(); setShowHamburgerMenu(false); }}>
-                  {translations.menu_our_customers || 'Our Customers'}
-                </a>
-                <a href="#" className="hamburger-item" onClick={(e) => { e.preventDefault(); setShowHamburgerMenu(false); }}>
-                  {translations.menu_about_us || 'About us'}
-                </a>
-                <a href="#" className="hamburger-item" onClick={(e) => { e.preventDefault(); setShowHamburgerMenu(false); }}>
-                  {translations.menu_contact_us || 'Contact Us'}
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <TopBar 
+        logo={logo}
+        flagSe={flag_se}
+        flagGb={flag_gb}
+        language={language}
+        setLanguage={setLanguage}
+        translations={translations}
+      />
       <div className="login-card">
-        <h1>{translations.title || 'Welcome back'}</h1>
-        <p className="subtitle">{translations.subtitle || 'Sign in to continue'}</p>
+        <h1>{translations.title || 'Log in'}</h1>
         <form className="form" onSubmit={handleSubmit}>
           {error && <div className="error">{error}</div>}
           <label>
@@ -166,7 +98,7 @@ export default function Login() {
             {translations.password_label || 'Password'}
             <div className="password-input-wrapper">
               <input 
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 placeholder={translations.password_placeholder || '••••••••'} 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -177,7 +109,7 @@ export default function Login() {
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -194,9 +126,27 @@ export default function Login() {
             </div>
           </label>
           <button type="submit" className="primary" disabled={loading}>
-            {loading ? (translations.logging_in || 'Logging in...') : (translations.button_label || 'Login')}
+            {loading ? (translations.logging_in || 'Logging in...') : (translations.button_label || 'Log in')}
           </button>
         </form>
+        <div className="login-footer">
+          <a href="#" className="login-footer-link" onClick={e => e.preventDefault()}>
+            {translations.register || 'Register'}
+          </a>
+          <a href="#" className="login-footer-link" onClick={e => e.preventDefault()}>
+            {translations.forgotten_password || 'Forgotten password?'}
+          </a>
+        </div>
+      </div>
+      <div className={`login-bottombar`}>
+        <div className="brand">123 Fakturera</div>
+        <div className="footer-divider" />
+        <nav className="bottom-links">
+          <a href="#" onClick={e => e.preventDefault()}>Home</a>
+          <a href="#" onClick={e => e.preventDefault()}>Order</a>
+          <a href="#" onClick={e => e.preventDefault()}>Contact us</a>
+        </nav>
+        <div className="footer-rights">© Lättfaktura, CRO no. 638537, 2025. All rights reserved.</div>
       </div>
     </div>
   );
