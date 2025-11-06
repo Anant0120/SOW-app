@@ -7,7 +7,8 @@ import { API_BASE } from '../config';
 export default function Pricelist() {
   const token = localStorage.getItem('token');
   const [user, setUser] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
@@ -34,6 +35,19 @@ export default function Pricelist() {
       .then(data => data && data.user && setUser(data.user))
       .catch(() => {});
   }, [token]);
+
+  
+  useEffect(() => {
+    const handleResize = () => {
+      const isMobile = window.innerWidth < 897;
+      if (isMobile && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [sidebarOpen]);
 
   useEffect(() => {
     if (!token) return;
