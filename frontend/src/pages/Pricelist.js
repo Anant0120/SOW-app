@@ -198,19 +198,19 @@ export default function Pricelist() {
 
           <div className="pl-table-wrapper">
             <div className="pl-header row">
-              <div className="cell col-article hide-mobile hide-tablet">Article No.</div>
+              <div className="cell col-article hide-mobile hide-phone-landscape">Article No.</div>
               <div className="cell col-name">Product/Service</div>
-              <div className="cell col-inprice hide-tablet hide-mobile">In Price</div>
+              <div className="cell col-inprice hide-tablet hide-mobile hide-phone-landscape">In Price</div>
               <div className="cell col-price">Price</div>
-              <div className="cell col-unit hide-mobile">Unit</div>
-              <div className="cell col-instock hide-mobile">In Stock</div>
-              <div className="cell col-desc hide-mobile hide-tablet">Description</div>
+              <div className="cell col-unit hide-mobile hide-phone-landscape">Unit</div>
+              <div className="cell col-instock hide-mobile hide-phone-landscape">In Stock</div>
+              <div className="cell col-desc hide-mobile hide-tablet hide-phone-landscape">Description</div>
             </div>
 
             <div className="pl-rows" ref={rowsRef}>
               {products.map(p => (
                 <div className="row" key={p.id}>
-              <div className="cell col-article hide-mobile hide-tablet">
+              <div className="cell col-article hide-mobile hide-phone-landscape">
                 <input value={p.article_no || ''} onChange={e => handleChange(p.id, 'article_no', e.target.value)} />
                 <StatusDot id={p.id} field="article_no" />
               </div>
@@ -218,7 +218,7 @@ export default function Pricelist() {
                 <input value={p.product_service || ''} onChange={e => handleChange(p.id, 'product_service', e.target.value)} />
                 <StatusDot id={p.id} field="product_service" />
               </div>
-              <div className="cell col-inprice hide-tablet hide-mobile">
+              <div className="cell col-inprice hide-tablet hide-mobile hide-phone-landscape">
                 <input type="text" value={p.in_price ?? ''} onChange={e => handleChange(p.id, 'in_price', e.target.value)} />
                 <StatusDot id={p.id} field="in_price" />
               </div>
@@ -226,15 +226,15 @@ export default function Pricelist() {
                 <input type="text" value={p.price ?? ''} onChange={e => handleChange(p.id, 'price', e.target.value)} />
                 <StatusDot id={p.id} field="price" />
               </div>
-              <div className="cell col-unit hide-mobile">
+              <div className="cell col-unit hide-mobile hide-phone-landscape">
                 <input value={p.unit || ''} onChange={e => handleChange(p.id, 'unit', e.target.value)} />
                 <StatusDot id={p.id} field="unit" />
               </div>
-              <div className="cell col-instock hide-mobile">
+              <div className="cell col-instock hide-mobile hide-phone-landscape">
                 <input type="text" value={p.in_stock ?? ''} onChange={e => handleChange(p.id, 'in_stock', e.target.value)} />
                 <StatusDot id={p.id} field="in_stock" />
               </div>
-              <div className="cell col-desc hide-mobile hide-tablet">
+              <div className="cell col-desc hide-mobile hide-tablet hide-phone-landscape">
                 <input value={p.description || ''} onChange={e => handleChange(p.id, 'description', e.target.value)} />
                 <StatusDot id={p.id} field="description" />
               </div>
