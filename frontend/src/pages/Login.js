@@ -146,7 +146,7 @@ export default function Login() {
           <a href="#" onClick={e => e.preventDefault()}>Order</a>
           <a href="#" onClick={e => e.preventDefault()}>Contact us</a>
         </nav>
-        <div className="footer-rights">© Lättfaktura, CRO no. 638537, 2025. All rights reserved.</div>
+        <div className="footer-rights">All rights reserved.</div>
       </div>
     </div>
   );
