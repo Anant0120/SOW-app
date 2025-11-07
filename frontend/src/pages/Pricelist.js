@@ -282,8 +282,8 @@ export default function Pricelist() {
 
           <div className="pl-table-wrapper">
             <div className="pl-header row">
-              <div className="cell col-article hide-mobile hide-phone-landscape sortable">Article No. <span className="sort-arrow">↓</span></div>
-              <div className="cell col-name sortable">Product/Service <span className="sort-arrow">↓</span></div>
+              <div className="cell col-article hide-mobile hide-phone-landscape">Article No.</div>
+              <div className="cell col-name">Product/Service</div>
               <div className="cell col-inprice hide-tablet hide-mobile hide-phone-landscape">In Price</div>
               <div className="cell col-price">Price</div>
               <div className="cell col-instock hide-mobile hide-phone-landscape">In Stock</div>

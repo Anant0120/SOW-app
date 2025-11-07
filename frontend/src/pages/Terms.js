@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Terms.css';
+import './Login.css';
+import TopBar from '../components/TopBar';
 import { API_BASE } from '../config';
 
 const flag_se = 'https://storage.123fakturere.no/public/flags/SE.png';
@@ -39,57 +41,21 @@ export default function Terms() {
 
   return (
     <div className="terms-page" style={{ backgroundImage: `url(${wallpaper})` }}>
-      <div className="terms-topbar">
-        <div className="left">
-          <img src={logo} alt="Logo" className="logo" />
-        </div>
-        <div className="right">
-          <div className="language-selector">
-            <button 
-              className="flag" 
-              onClick={() => setShowLangDropdown(!showLangDropdown)}
-            >
-              {language === 'sv' ? (
-                <>
-                  <img src={flag_se} alt="SE" />
-                  <span>Svenska</span>
-                </>
-              ) : (
-                <>
-                  <img src={flag_gb} alt="EN" />
-                  <span>English</span>
-                </>
-              )}
-            </button>
-            {showLangDropdown && (
-              <div className="language-dropdown">
-                <button 
-                  className={language === 'en' ? 'active' : ''}
-                  onClick={() => {
-                    setLanguage('en');
-                    setShowLangDropdown(false);
-                  }}
-                >
-                  <img src={flag_gb} alt="EN" />
-                  <span>English</span>
-                </button>
-                <button 
-                  className={language === 'sv' ? 'active' : ''}
-                  onClick={() => {
-                    setLanguage('sv');
-                    setShowLangDropdown(false);
-                  }}
-                >
-                  <img src={flag_se} alt="SE" />
-                  <span>Svenska</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+      <TopBar 
+        logo={logo}
+        flagSe={flag_se}
+        flagGb={flag_gb}
+        language={language}
+        setLanguage={setLanguage}
+        translations={translations}
+      />
+      <h1 className="terms-title">{translations.title || 'Terms'}</h1>
+      <div className="terms-cta">
+        <button className="close-pill" onClick={handleClose}>
+          {translations.close_and_go_back}
+        </button>
       </div>
       <div className="terms-card">
-        <h1>{translations.title}</h1>
         <div className="terms-content">
           {termsText ? (
             <div className="terms-text" dangerouslySetInnerHTML={{ __html: termsText }} />
@@ -97,11 +63,11 @@ export default function Terms() {
             <p>Loading terms...</p>
           )}
         </div>
-        <div className="terms-footer">
-          <button className="close-button" onClick={handleClose}>
-            {translations.close_and_go_back}
-          </button>
-        </div>
+      </div>
+      <div className="terms-cta bottom">
+        <button className="close-pill" onClick={handleClose}>
+          {translations.close_and_go_back}
+        </button>
       </div>
     </div>
   );
