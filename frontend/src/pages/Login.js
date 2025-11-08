@@ -131,10 +131,10 @@ export default function Login() {
         </form>
         <div className="login-footer">
           <a href="#" className="login-footer-link" onClick={e => e.preventDefault()}>
-            {translations.register || 'Register'}
+            {translations.register_link || 'Register'}
           </a>
           <a href="#" className="login-footer-link" onClick={e => e.preventDefault()}>
-            {translations.forgotten_password || 'Forgotten password?'}
+            {translations.forgotten_password_link || 'Forgotten password?'}
           </a>
         </div>
       </div>
